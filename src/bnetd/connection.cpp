@@ -17,6 +17,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#include <arpa/inet.h>
+
 #define CONNECTION_INTERNAL_ACCESS
 #include "common/setup_before.h"
 #include "connection.h"
@@ -2152,7 +2154,12 @@ namespace pvpgn
 					&& !gamelist_find_game_available(gamename, c->protocol.client.clienttag, game_type_all)) {
 					/* do not allow creation of games with same name of same clienttag when game is not started or done */
 					// create game with initial values
-					c->protocol.game = game_create(gamename, gamepass, gameinfo, type, version, c->protocol.client.clienttag, conn_get_gameversion(c));
+
+					// add hardcoded password if the game isn't created from localhost.
+					if (c->socket.tcp_addr != inet_addr("127.0.0.1"))
+						c->protocol.game = game_create(gamename, "worldofeditors.net", gameinfo, type, version, c->protocol.client.clienttag, conn_get_gameversion(c));
+					else
+						c->protocol.game = game_create(gamename, gamepass, gameinfo, type, version, c->protocol.client.clienttag, conn_get_gameversion(c));
 
 					if (c->protocol.game && conn_get_realm(c) && conn_get_charname(c)) {
 						game_set_realmname(c->protocol.game, realm_get_name(conn_get_realm(c)));
